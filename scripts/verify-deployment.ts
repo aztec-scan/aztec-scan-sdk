@@ -10,50 +10,27 @@ import { config } from "../src/config";
 import { 
   ArtifactObject, 
   VerifyInstanceArgs, 
-  ContractDeployerMetadata 
+  ContractDeployerMetadata, 
+  DeploymentArtifact
 } from "../src/types";
 
 // Load the token contract artifact directly from the known path
-const tokenContractArtifactPath = join(
-  __dirname,
-  "../node_modules/@aztec/noir-contracts.js/artifacts/token_contract-Token.json",
-);
-const tokenContractArtifactJson = JSON.parse(
-  readFileSync(tokenContractArtifactPath, "utf8"),
-);
+const deploymentArtifact = JSON.parse(readFileSync(config.defaults.deploymentArtifactPath,"utf8")) as DeploymentArtifact
 
-// Parse command line arguments
-const args = process.argv.slice(2);
-const contractInstanceAddress = args[0] || ""; // Default empty string
-
-if (!contractInstanceAddress) {
-  console.error("Error: Contract instance address is required");
-  console.error("Usage: npm run verify-deployment <contractInstanceAddress>");
-  process.exit(1);
-}
-
+const tokenContractArtifactJson = deploymentArtifact.contractArtifact
+const contractInstanceAddress = deploymentArtifact.address
 const contractLoggingName = "Token Contract";
 
-// HARDCODED EXAMPLES
 // Example constructor arguments for a Token contract (must be strings)
-const EXAMPLE_CONSTRUCTOR_ARGS = [
-  "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef", // owner address
-  "TokenName", // token name
-  "TKN", // token symbol
-  "18", // decimals (as string)
-];
+const EXAMPLE_CONSTRUCTOR_ARGS = deploymentArtifact.constructorArgs
 
-// Example public keys string
-const EXAMPLE_PUBLIC_KEYS_STRING =
-  "0x117c12386e075ffacbda87aab144e3a5e54ea81a0acac393648503fdc40afb692feed50d678b9d4dc459c2e0144ce6765aaa0cd5d21618e41abe5450300edd6b0c6f602b23b9ab6c688446a53f74e7d75ce1c9d4828c82edcefdc1fb0422d4732f332e2ea2e57adbf290297f43ebaeb4f50ec2bf39b3424a0172bdec0b508434278cbb3b8810477d23aa7dc1d6266ddc222cb03e1526d34e071e2eac11339d630e333065c42d7321db5903c680fdcfbc784c5a6248336d24a1c3ae9bb97dbe660a3cf114852ba27eabf15d7069025ba0d4029b4cc7e5463090eb2a44615a03c805d3a58bead62678d234e9ffb9f2ae76b4c2491624d43d7702fb38c09e0f8138";
-
+// TODO find out what the actual order is and do that. Instead of this long one liner that assumes the key order is correct (likely not!!!)
+const EXAMPLE_PUBLIC_KEYS_STRING = "0x" + Object.keys(deploymentArtifact.publicKeys).map((k:string)=>(deploymentArtifact.publicKeys)[k as keyof typeof deploymentArtifact.publicKeys].toString().slice(2)).join("");
 // Example deployer address
-const EXAMPLE_DEPLOYER =
-  "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890";
+const EXAMPLE_DEPLOYER = deploymentArtifact.deployer;
 
 // Example salt value
-const EXAMPLE_SALT =
-  "0x0000000000000000000000000000000000000000000000000000000000000001";
+const EXAMPLE_SALT = deploymentArtifact.salt
 
 // Example deployer metadata
 const EXAMPLE_DEPLOYER_METADATA: ContractDeployerMetadata = {
@@ -111,15 +88,15 @@ void (async (): Promise<void> => {
     // Using hardcoded example values with the correct parameter structure
     const verifyArgs: VerifyInstanceArgs = {
       publicKeysString: EXAMPLE_PUBLIC_KEYS_STRING,
-      deployer: EXAMPLE_DEPLOYER,
-      salt: EXAMPLE_SALT,
+      deployer: EXAMPLE_DEPLOYER.toString(),
+      salt: EXAMPLE_SALT.toString(),
       constructorArgs: EXAMPLE_CONSTRUCTOR_ARGS,
       artifactObj: tokenContractArtifactJson as ArtifactObject,
     };
 
     await verifyContractInstanceDeployment(
       contractLoggingName,
-      contractInstanceAddress,
+      contractInstanceAddress.toString(),
       verifyArgs,
       EXAMPLE_DEPLOYER_METADATA
     );

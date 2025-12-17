@@ -12,9 +12,13 @@ export interface Config {
   };
   defaults: {
     contractType: string;
+    deploymentArtifactPath: string;
+  };
+  aztec: {
+    nodeUrl: string;
   };
 }
-
+const aztecNodeUrl = "https://devnet.aztec-labs.com";
 // Create and export the configuration
 export const config: Config = {
   explorerApi: {
@@ -23,5 +27,9 @@ export const config: Config = {
   },
   defaults: {
     contractType: process.env.DEFAULT_CONTRACT_TYPE || "Token",
+    deploymentArtifactPath:process.env.DEFAULT_DEPLOYMENT_ARTIFACT_PATH|| "./artifacts/deploymentArtifact.json",
   },
+  aztec: {
+    nodeUrl: process.env.AZTEC_NODE_URL || "https://devnet.aztec-labs.com",
+  }
 };

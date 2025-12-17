@@ -7,21 +7,17 @@ import {
   generateVerifyArtifactUrl,
 } from "../src/api-utils";
 import { config } from "../src/config";
-import { ArtifactObject } from "../src/types";
+import { ArtifactObject, DeploymentArtifact } from "../src/types";
+
+
 
 // Load the token contract artifact directly from the known path
-const tokenContractArtifactPath = join(
-  __dirname,
-  "../node_modules/@aztec/noir-contracts.js/artifacts/token_contract-Token.json",
-);
-const tokenContractArtifactJson = JSON.parse(
-  readFileSync(tokenContractArtifactPath, "utf8"),
-);
+const deploymentArtifact = JSON.parse(readFileSync(config.defaults.deploymentArtifactPath,"utf8")) as DeploymentArtifact
+const tokenContractArtifactJson = deploymentArtifact.contractArtifact
 
-// Parse command line arguments
-const args = process.argv.slice(2);
-const contractClassId = args[0] || ""; // Default empty string
-const version = parseInt(args[1] || "1", 10); // Default version 1
+
+const contractClassId = deploymentArtifact.classId
+const version = deploymentArtifact.version 
 
 if (!contractClassId) {
   console.error("Error: Contract class ID is required");
@@ -65,7 +61,7 @@ void (async (): Promise<void> => {
     await registerContractClassArtifact(
       contractLoggingName,
       tokenContractArtifactJson as ArtifactObject,
-      contractClassId,
+      contractClassId.toString(),
       version,
     );
     console.log("Registration completed successfully!");
