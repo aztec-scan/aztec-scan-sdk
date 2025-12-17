@@ -1,0 +1,20 @@
+{
+  "address": "0x20242586e31f9ded0dcf852d2f8638134f126d1bb88876c47dcd1e399adab646",
+  "deployer": "0x11deabd59b872d17c737b66f61d332230f341e774c6b5d3762f46a74536f947f",
+  "constructorArgs": [
+    "0x11deabd59b872d17c737b66f61d332230f341e774c6b5d3762f46a74536f947f",
+    "TokenName",
+    "TKN",
+    18
+  ],
+  "salt": "0x24e3f062a14f055a40a22f5ea9627f009ff09dd7a5ca18e83bb0aa7f27f87989",
+  "publicKeys": {
+    "masterNullifierPublicKey": "0x01498945581e0eb9f8427ad6021184c700ef091d570892c437d12c7d90364bbd170ae506787c5c43d6ca9255d571c10fa9ffa9d141666e290c347c5c9ab7e344",
+    "masterIncomingViewingPublicKey": "0x00c044b05b6ca83b9c2dbae79cc1135155956a64e136819136e9947fe5e5866c1c1f0ca244c7cd46b682552bff8ae77dea40b966a71de076ec3b7678f2bdb151",
+    "masterOutgoingViewingPublicKey": "0x1b00316144359e9a3ec8e49c1cdb7eeb0cedd190dfd9dc90eea5115aa779e287080ffc74d7a8b0bccb88ac11f45874172f3847eb8b92654aaa58a3d2b8dc7833",
+    "masterTaggingPublicKey": "0x019c111f36ad3fc1d9b7a7a14344314d2864b94f030594cd67f753ef774a1efb2039907fe37f08d10739255141bb066c506a12f7d1e8dfec21abc58494705b6f"
+  },
+  "version": 1,
+  "classId": "0x117c3a7d5a517a3b102bc36c02d903506ea393d3584de897ed0674c30c97cb34",
+  "contractArtifact": "The contract artifact object from @aztec.js"
+}
