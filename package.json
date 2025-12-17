@@ -10,7 +10,7 @@
     "build:all": "npm run build && npm run build:scripts",
     "clean": "rimraf dist dist-scripts",
     "lint": "eslint . --ext .ts",
-    "deploy-contract": "ts-node scripts/deployToken.ts",
+    "deploy-contract": "ts-node scripts/deployContract.ts",
     "register-artifact": "ts-node scripts/register-artifact.ts",
     "verify-deployment": "ts-node scripts/verify-deployment.ts"
   },

@@ -9,10 +9,10 @@ import {
 import { config } from "../src/config";
 import { ArtifactObject, DeploymentArtifact } from "../src/types";
 
-
-
+const args = process.argv.slice(2);
+const deploymentArtifactPath = args[0] || config.defaults.deploymentArtifactPath
 // Load the token contract artifact directly from the known path
-const deploymentArtifact = JSON.parse(readFileSync(config.defaults.deploymentArtifactPath,"utf8")) as DeploymentArtifact
+const deploymentArtifact = JSON.parse(readFileSync(deploymentArtifactPath,"utf8")) as DeploymentArtifact
 const tokenContractArtifactJson = deploymentArtifact.contractArtifact
 
 

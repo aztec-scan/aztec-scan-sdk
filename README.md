@@ -30,52 +30,71 @@ The SDK uses environment variables for configuration. You can either:
 
 Available configuration options:
 
-| Variable              | Description                     | Default                      |
-| --------------------- | ------------------------------- | ---------------------------- |
-| EXPLORER_API_URL      | Base URL for the Aztec Scan API | https://api.aztecscan.xyz/v1 |
-| API_KEY               | API key for authorization       | temporary-api-key            |
-| DEFAULT_CONTRACT_TYPE | Default contract type           | Token                        |
-
+| Variable                            | Description                         | Default                               |
+| ---------------------               | -------------------------------     | ----------------------------          |
+| EXPLORER_API_URL                    | Base URL for the Aztec Scan API     | https://api.devnet.aztecscan.xyz/v1   |
+| API_KEY                             | API key for authorization           | temporary-api-key                     |
+| DEFAULT_CONTRACT_TYPE               | Default contract type               | Token                                 |
+| DEFAULT_DEPLOYMENT_ARTIFACT_PATH    | Which deployment artifact to verify | ./artifacts/deploymentArtifact.json   |
+| AZTEC_NODE_URL                      | which url to use for deployments    | https://devnet.aztec-labs.com         |
 ## Usage
+
+### Deployment info required
+The scripts below consume a json file that contains everything needed to verify deployment. This file is called the deploymentArtifact which has this structure: 
+```ts
+export interface DeploymentArtifact {
+  address: AztecAddress,
+  deployer: AztecAddress,
+  constructorArgs: any[],
+  salt: Fr,
+  publicKeys: PublicKeys
+
+  version: number,
+  classId: Fr,
+
+  contractArtifact: ContractArtifact,
+}
+```
+
+Note that things like salt are usually discarded in the normal aztec deployment ux!
+
+To make sure all you have all information stored you can use `deployAndCreateDeploymentArtifact()` from [deployment-utils.ts](src/deployment-utils.ts).
+
+You can look at [deployContract.ts](scripts/deployContract.ts) to see how to deploy with it.  
+
+run this to deploy the default aztec token contract and store it's deploymentArtifact in the [artifacts](./artifacts/deploymentArtifact.json) folder.
+```bash
+npm run deploy-contract
+```
+
 
 ### Register a Contract Artifact
 
 This script registers a contract artifact (Token contract) with the Explorer API:
 
-```bash
-npm run register-artifact <contractClassId> [version]
-```
-
 Parameters:
 
-- `contractClassId` (required): The contract class ID to register
-- `version` (optional): The version number of the contract (defaults to 1)
+- `deploymentArtifact` (optional): All information needed to verify the contract
 
 Example:
 
 ```bash
-npm run register-artifact 0x07cec63fc8993153bfd64b5a9005af4e80414788c5d25763474db5f516f97d06 1
+npm run register-artifact ./artifacts/deploymentArtifact.json
 ```
 
 ### Verify a Contract Deployment
 
 This script verifies a deployed contract instance:
 
-```bash
-npm run verify-deployment <contractInstanceAddress>
-```
-
 Parameters:
 
-- `contractInstanceAddress` (required): The address of the deployed contract instance
-
-Example:
+- `deploymentArtifact` (optional): All information needed to verify the contract
 
 ```bash
-npm run verify-deployment 0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+npm run verify-deployment ./artifacts/deploymentArtifact.json
 ```
 
-Note: The script uses hardcoded example values for constructor arguments, deployer information, and other verification parameters. You may need to modify these in the script (`scripts/verify-deployment.ts`) to match your actual contract deployment.
+
 
 ## Using the SDK in Your Code
 

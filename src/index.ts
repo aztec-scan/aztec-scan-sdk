@@ -1,5 +1,6 @@
 // Export all public APIs
 export * from "./api-utils";
+export * from "./deployment-utils";
 export * from "./config";
 export * from "./types";
 
