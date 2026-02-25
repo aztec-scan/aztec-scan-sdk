@@ -38,8 +38,8 @@ import {
 import { TokenContract } from "@aztec/noir-contracts.js/Token";
 
 // SDK imports
-import { AztecScanClient } from "../src/index.js";
-import type { DeployerMetadata, AztecScanNotes } from "../src/types.js";
+import { AztecScanClient, fromContractInstance } from "../src/index.js";
+import type { DeployerMetadata } from "../src/types.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: join(__dirname, "../.env") });
@@ -127,27 +127,19 @@ async function main() {
     wait: { timeout: DEPLOY_TIMEOUT, returnReceipt: true },
   });
 
-  const contractAddress = tokenContract.address.toString();
-  const contractClassId = instance.currentContractClassId.toString();
+  // Extract verification params using the SDK helper
+  const { address: contractAddress, contractClassId, verifyInstanceArgs } =
+    fromContractInstance(instance, {
+      constructorArgs: [accountAddress, tokenName, tokenSymbol, tokenDecimals],
+      artifactObj: undefined, // we'll set it below after loading the artifact
+    });
+
   log(`Token deployed at: ${contractAddress}`);
   log(`Contract class ID: ${contractClassId}`);
-  log(`Salt: ${instance.salt.toString()}`);
-  log(`Deployer: ${instance.deployer.toString()}`);
-
-  // Build publicKeysString from instance
-  const publicKeysString = instance.publicKeys
-    ? instance.publicKeys.toString()
-    : "0x" + "0".repeat(512);
-  log(`Public keys string length: ${publicKeysString.length}`);
-
-  // Constructor args as strings (matching what the server expects)
-  const constructorArgs = [
-    accountAddress.toString(), // admin
-    tokenName,
-    tokenSymbol,
-    tokenDecimals.toString(),
-  ];
-  log(`Constructor args: ${JSON.stringify(constructorArgs)}`);
+  log(`Salt: ${verifyInstanceArgs.salt}`);
+  log(`Deployer: ${verifyInstanceArgs.deployer}`);
+  log(`Public keys string length: ${verifyInstanceArgs.publicKeysString.length}`);
+  log(`Constructor args: ${JSON.stringify(verifyInstanceArgs.constructorArgs)}`);
 
   // 5. Wait for indexer, then verify artifact
   await waitForIndexing(15);
@@ -192,10 +184,7 @@ async function main() {
   const instanceResult = await client.verifyInstance(
     contractAddress,
     {
-      publicKeysString,
-      deployer: instance.deployer.toString(),
-      salt: instance.salt.toString(),
-      constructorArgs,
+      ...verifyInstanceArgs,
       artifactObj: tokenArtifact,
     },
     deployerMetadata,

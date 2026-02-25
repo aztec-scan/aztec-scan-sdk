@@ -33,6 +33,11 @@ export {
   generateVerifyInstancePayload,
   buildVerifyInstanceBody,
 } from "./api-utils.js";
+export {
+  fromContractInstance,
+  type FromContractInstanceOptions,
+  type FromContractInstanceResult,
+} from "./aztec-helpers.js";
 
 // ── Client class ────────────────────────────────────────────────────
 
