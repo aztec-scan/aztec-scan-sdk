@@ -1,39 +1,57 @@
 {
   "name": "aztec-scan-sdk",
-  "version": "0.1.0",
-  "description": "SDK for interacting with Aztec Scan APIs",
+  "version": "0.2.0",
+  "description": "SDK for interacting with Aztec Scan APIs — verify contract artifacts and deployments",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "build:scripts": "tsc -p tsconfig.scripts.json",
     "build:all": "npm run build && npm run build:scripts",
     "clean": "rimraf dist dist-scripts",
     "lint": "eslint . --ext .ts",
-    "register-artifact": "ts-node scripts/register-artifact.ts",
-    "verify-deployment": "ts-node scripts/verify-deployment.ts"
+    "register-artifact": "NODE_NO_WARNINGS=1 node --loader ts-node/esm scripts/register-artifact.ts",
+    "verify-deployment": "NODE_NO_WARNINGS=1 node --loader ts-node/esm scripts/verify-deployment.ts",
+    "deploy-and-verify": "NODE_NO_WARNINGS=1 node --loader ts-node/esm scripts/deploy-and-verify.ts",
+    "deploy-and-verify::devnet": "NODE_NO_WARNINGS=1 AZTEC_ENV=devnet node --loader ts-node/esm scripts/deploy-and-verify.ts"
   },
   "keywords": [
     "aztec",
     "blockchain",
     "explorer",
-    "sdk"
+    "sdk",
+    "verification"
   ],
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@aztec/aztec.js": "^0.85.0",
-    "@aztec/noir-contracts.js": "^0.85.0",
+    "@aztec/accounts": "4.0.0-devnet.2-patch.1",
+    "@aztec/aztec.js": "4.0.0-devnet.2-patch.1",
+    "@aztec/constants": "4.0.0-devnet.2-patch.1",
+    "@aztec/entrypoints": "4.0.0-devnet.2-patch.1",
+    "@aztec/noir-contracts.js": "4.0.0-devnet.2-patch.1",
+    "@aztec/protocol-contracts": "4.0.0-devnet.2-patch.1",
+    "@aztec/pxe": "4.0.0-devnet.2-patch.1",
+    "@aztec/stdlib": "4.0.0-devnet.2-patch.1",
+    "@aztec/wallet-sdk": "4.0.0-devnet.2-patch.1",
+    "@aztec/wallets": "4.0.0-devnet.2-patch.1",
     "dotenv": "^16.3.1"
   },
   "devDependencies": {
-    "@types/node": "^20.5.0",
+    "@types/node": "^22.15.1",
     "@typescript-eslint/eslint-plugin": "^6.11.0",
     "@typescript-eslint/parser": "^6.11.0",
     "eslint": "^8.53.0",
     "eslint-config-prettier": "^9.0.0",
     "rimraf": "^5.0.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.2.2"
+    "typescript": "^5.4.4"
   }
 }

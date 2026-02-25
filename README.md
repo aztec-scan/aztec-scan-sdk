@@ -1,142 +1,146 @@
 # Aztec Scan SDK
 
-This SDK provides utilities for interacting with the Aztec Scan API. Specifically for registering contract metadata. [Our full API documentation is available here](https://docs.aztecscan.xyz).
+SDK for verifying contract artifacts and deployments on [AztecScan](https://aztecscan.xyz). Compatible with Aztec v4 (`@aztec/*@4.0.0-devnet.2-patch.1`).
+
+[Full API documentation](https://docs.aztecscan.xyz)
 
 ## Features
 
-✅ - Register contract artifacts
-✅ - Verify contract deployments
-✅ - Deployer contact information
-⚠️ - To be shown on [Aztec Scan's Ecosystem page](https://aztecscan.xyz/ecosystem) you'll need to have AztecScanNotes registered. [Currently this is done by creating a PR to this file.](https://github.com/aztec-scan/chicmoz/blob/main/services/explorer-api/src/constants.ts).
+- Verify contract artifacts (contract classes)
+- Verify contract instance deployments
+- Attach deployer metadata (name, contact, repo, etc.)
+- Attach AztecScan notes (displayed in the explorer UI)
+- Network presets for devnet, testnet, mainnet
+- Stateful `AztecScanClient` class or stateless utility functions
+- End-to-end deploy-and-verify script for devnet
 
 ## Installation
 
 ```bash
-# Clone the repository
-git clone <repository-url>
+git clone https://github.com/aztec-scan/aztec-scan-sdk.git
 cd aztec-scan-sdk
-
-# Install dependencies
 npm install
 ```
 
 ## Configuration
 
-The SDK uses environment variables for configuration. You can either:
+Copy `.env.example` to `.env` and edit as needed:
 
-1. Modify the `.env` file directly
-2. Create a `.env.local` file to override the default values
-3. Set environment variables in your system
+```bash
+cp .env.example .env
+```
 
-Available configuration options:
-
-| Variable              | Description                     | Default                      |
-| --------------------- | ------------------------------- | ---------------------------- |
-| EXPLORER_API_URL      | Base URL for the Aztec Scan API | https://api.aztecscan.xyz/v1 |
-| API_KEY               | API key for authorization       | temporary-api-key            |
-| DEFAULT_CONTRACT_TYPE | Default contract type           | Token                        |
+| Variable           | Description                  | Default (devnet)                         |
+| ------------------ | ---------------------------- | ---------------------------------------- |
+| `EXPLORER_API_URL` | AztecScan API base URL       | `https://api.devnet.aztecscan.xyz`       |
+| `API_KEY`          | API key                      | `temporary-api-key`                      |
+| `AZTEC_NODE_URL`   | Aztec node RPC (for scripts) | `https://v4-devnet-2.aztec-labs.com/`    |
 
 ## Usage
 
-### Register a Contract Artifact
+### As a library
 
-This script registers a contract artifact (Token contract) with the Explorer API:
+```typescript
+import { AztecScanClient } from "aztec-scan-sdk";
+
+// Uses env vars or defaults to devnet
+const client = new AztecScanClient();
+
+// Or configure explicitly
+const client = new AztecScanClient({
+  network: "testnet",
+  // or: explorerApiUrl: "https://api.testnet.aztecscan.xyz",
+  // apiKey: "your-api-key",
+});
+
+// Verify a contract artifact
+const artifactResult = await client.verifyArtifact(
+  contractClassId,
+  1, // version
+  artifactJson,
+);
+
+// Verify a contract instance deployment
+const instanceResult = await client.verifyInstance(
+  contractAddress,
+  {
+    publicKeysString,  // 514 chars: "0x" + 4*128 hex
+    deployer,          // 66 chars: "0x" + 64 hex
+    salt,              // 66 chars: "0x" + 64 hex
+    constructorArgs: ["arg1", "arg2"],
+    artifactObj: artifactJson, // optional if already verified
+  },
+  {
+    // optional deployer metadata
+    contractIdentifier: "MyToken",
+    details: "My token contract",
+    creatorName: "Alice",
+    creatorContact: "alice@example.com",
+    appUrl: "https://myapp.xyz",
+    repoUrl: "https://github.com/alice/myapp",
+    // optional AztecScan notes (shown in explorer UI, non-production envs only)
+    aztecScanNotes: {
+      name: "My Token",
+      origin: "My Project",
+      comment: "A brief description of this contract instance",
+    },
+  },
+);
+```
+
+### CLI scripts
+
+#### Register a contract artifact
 
 ```bash
 npm run register-artifact <contractClassId> [version]
 ```
 
-Parameters:
-
-- `contractClassId` (required): The contract class ID to register
-- `version` (optional): The version number of the contract (defaults to 1)
-
-Example:
+#### Verify a contract instance
 
 ```bash
-npm run register-artifact 0x07cec63fc8993153bfd64b5a9005af4e80414788c5d25763474db5f516f97d06 1
+npm run verify-deployment <address> <publicKeysString> <deployer> <salt> [constructorArgs...]
 ```
 
-### Verify a Contract Deployment
+#### Deploy and verify (end-to-end, devnet)
 
-This script verifies a deployed contract instance:
+Deploys a Token contract to devnet, then verifies both the artifact and instance on AztecScan:
 
 ```bash
-npm run verify-deployment <contractInstanceAddress>
+npm run deploy-and-verify::devnet
 ```
 
-Parameters:
+This script:
+1. Creates an ephemeral `EmbeddedWallet`
+2. Deploys a Schnorr account (sponsored fees via `SponsoredFPC`)
+3. Deploys a `TokenContract`
+4. Waits for the indexer to pick up the deployment
+5. Verifies the artifact on AztecScan
+6. Verifies the instance deployment on AztecScan
 
-- `contractInstanceAddress` (required): The address of the deployed contract instance
-
-Example:
+## Building
 
 ```bash
-npm run verify-deployment 0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+npm run build          # Build SDK (src/ -> dist/)
+npm run build:scripts  # Build scripts
+npm run build:all      # Build both
 ```
 
-Note: The script uses hardcoded example values for constructor arguments, deployer information, and other verification parameters. You may need to modify these in the script (`scripts/verify-deployment.ts`) to match your actual contract deployment.
+## Architecture
 
-## Using the SDK in Your Code
-
-```typescript
-import {
-  generateVerifyArtifactUrl,
-  generateVerifyArtifactPayload,
-  generateVerifyInstanceUrl,
-  generateVerifyInstancePayload,
-  callExplorerApi,
-  initialize,
-} from "aztec-scan-sdk";
-
-// Optional: Initialize with custom settings
-initialize({
-  apiUrl: "https://your-api-url.com",
-  apiKey: "your-api-key",
-});
-
-// Register a contract artifact
-const registerArtifact = async (contractClassId, version, artifactObj) => {
-  const url = generateVerifyArtifactUrl(undefined, contractClassId, version);
-  const payload = generateVerifyArtifactPayload(artifactObj);
-
-  await callExplorerApi({
-    urlStr: url,
-    method: "POST",
-    postData: JSON.stringify(payload),
-    loggingString: "Register Artifact",
-  });
-};
-
-// Verify a contract deployment
-const verifyDeployment = async (
-  contractInstanceAddress,
-  verifyArgs,
-  deployerMetadata,
-) => {
-  const url = generateVerifyInstanceUrl(undefined, contractInstanceAddress);
-  const payload = {
-    verifiedDeploymentArguments: generateVerifyInstancePayload(verifyArgs),
-    deployerMetadata,
-  };
-
-  await callExplorerApi({
-    urlStr: url,
-    method: "POST",
-    postData: JSON.stringify(payload),
-    loggingString: "Verify Deployment",
-  });
-};
 ```
+src/
+  config.ts     — Configuration (network presets, env var resolution)
+  types.ts      — TypeScript types matching explorer-api Zod schemas
+  api-utils.ts  — URL/payload generators + fetch-based HTTP client
+  index.ts      — AztecScanClient class + re-exports
 
-## Building the SDK
-
-```bash
-npm run build
+scripts/
+  register-artifact.ts   — CLI: verify an artifact
+  verify-deployment.ts   — CLI: verify an instance
+  deploy-and-verify.ts   — E2E: deploy to devnet + verify on AztecScan
 ```
-
-This will generate the compiled JavaScript files in the `dist` directory.
 
 ## License
 
-This project is licensed under the Apache-2.0 License.
+Apache-2.0
