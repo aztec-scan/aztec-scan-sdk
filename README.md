@@ -88,6 +88,35 @@ const instanceResult = await client.verifyInstance(
 );
 ```
 
+### With `fromContractInstance` helper (recommended)
+
+If you're using the Aztec SDK to deploy contracts, `fromContractInstance` eliminates the manual string extraction boilerplate. It accepts the `ContractInstanceWithAddress` returned by deployment and produces all the verification arguments automatically:
+
+```typescript
+import { AztecScanClient, fromContractInstance } from "aztec-scan-sdk";
+import { TokenContract } from "@aztec/noir-contracts.js/Token";
+
+// Deploy the contract
+const { contract, instance } = await TokenContract.deploy(
+  wallet, admin, name, symbol, decimals,
+).send({ fee: { paymentMethod }, wait: { timeout: 1_200_000 } });
+
+// Extract all verification params in one call
+const { address, contractClassId, verifyInstanceArgs } = fromContractInstance(instance, {
+  constructorArgs: [admin, name, symbol, decimals],
+});
+
+// Verify
+const client = new AztecScanClient();
+await client.verifyArtifact(contractClassId, 1, tokenArtifact);
+await client.verifyInstance(address, { ...verifyInstanceArgs, artifactObj: tokenArtifact });
+```
+
+The helper handles:
+- Stringifying `salt`, `deployer`, and `publicKeysString` from the Aztec SDK types
+- Converting all constructor args to strings (numbers, `Fr`, `AztecAddress`, etc.)
+- Extracting the contract address and class ID
+
 ### CLI scripts
 
 #### Register a contract artifact
@@ -164,10 +193,11 @@ npm run build:all      # Build both
 
 ```
 src/
-  config.ts     — Configuration (network presets, env var resolution)
-  types.ts      — TypeScript types matching explorer-api Zod schemas
-  api-utils.ts  — URL/payload generators + fetch-based HTTP client
-  index.ts      — AztecScanClient class + re-exports
+  config.ts          — Configuration (network presets, env var resolution)
+  types.ts           — TypeScript types matching explorer-api Zod schemas
+  api-utils.ts       — URL/payload generators + fetch-based HTTP client
+  aztec-helpers.ts   — Helpers for converting Aztec SDK types (fromContractInstance)
+  index.ts           — AztecScanClient class + re-exports
 
 scripts/
   register-artifact.ts   — CLI: verify an artifact

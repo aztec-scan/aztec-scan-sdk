@@ -9,6 +9,7 @@ src/
   config.ts       — Config types, network presets (devnet/testnet/mainnet), createConfig()
   types.ts        — TypeScript types matching the explorer-api Zod schemas exactly
   api-utils.ts    — URL/payload generators + fetch-based HTTP client
+  aztec-helpers.ts — Helpers for converting Aztec SDK types (fromContractInstance)
   index.ts        — AztecScanClient class (main entry point) + re-exports
 
 scripts/
