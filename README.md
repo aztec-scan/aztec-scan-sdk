@@ -118,6 +118,40 @@ This script:
 5. Verifies the artifact on AztecScan
 6. Verifies the instance deployment on AztecScan
 
+## Field Reference
+
+### `publicKeysString`
+
+The `publicKeysString` is a 514-character hex string encoding the four master public keys of the contract instance. It is constructed by concatenating the keys in this exact order:
+
+```
+"0x" + masterNullifierPublicKey (128 hex chars)
+     + masterIncomingViewingPublicKey (128 hex chars)
+     + masterOutgoingViewingPublicKey (128 hex chars)
+     + masterTaggingPublicKey (128 hex chars)
+```
+
+Total: `2 + 4*128 = 514 characters`.
+
+If you have a deployed contract instance, the simplest way to get this value is:
+
+```typescript
+const publicKeysString = instance.publicKeys.toString();
+```
+
+This produces the correctly ordered string automatically. You do not need to construct it manually.
+
+### `salt` and `deployer`
+
+Both are 66-character hex strings (`"0x"` + 64 hex digits). After deploying a contract, extract them from the instance:
+
+```typescript
+const salt = instance.salt.toString();       // 66 chars
+const deployer = instance.deployer.toString(); // 66 chars
+```
+
+Note that `salt` is generated randomly during deployment by default and is **not recoverable** after the fact unless you save it. The `deploy-and-verify.ts` script demonstrates how to capture all required values at deploy time.
+
 ## Building
 
 ```bash
