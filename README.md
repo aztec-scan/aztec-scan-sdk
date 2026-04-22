@@ -1,8 +1,14 @@
 # Aztec Scan SDK
 
-SDK for verifying contract artifacts and deployments on [AztecScan](https://aztecscan.xyz). Compatible with Aztec v4 (`@aztec/*@4.0.0-devnet.2-patch.1`).
+SDK for verifying contract artifacts and deployments on [AztecScan](https://aztecscan.xyz). Compatible with Aztec v4 (`@aztec/*@4.2.0`).
 
 [Full API documentation](https://docs.aztecscan.xyz)
+
+OpenAPI specifications:
+
+- Devnet: `https://api.devnet.aztecscan.xyz/v1/temporary-api-key/open-api-specification`
+- Testnet: `https://api.testnet.aztecscan.xyz/v1/temporary-api-key/open-api-specification`
+- Mainnet: `https://api.mainnet.aztecscan.xyz/v1/temporary-api-key/open-api-specification`
 
 ## Features
 
@@ -97,9 +103,12 @@ import { AztecScanClient, fromContractInstance } from "aztec-scan-sdk";
 import { TokenContract } from "@aztec/noir-contracts.js/Token";
 
 // Deploy the contract
-const { contract, instance } = await TokenContract.deploy(
+const { receipt: { contract, instance } } = await TokenContract.deploy(
   wallet, admin, name, symbol, decimals,
-).send({ fee: { paymentMethod }, wait: { timeout: 1_200_000 } });
+).send({
+  from: admin,
+  wait: { timeout: 1_200_000, returnReceipt: true },
+});
 
 // Extract all verification params in one call
 const { address, contractClassId, verifyInstanceArgs } = fromContractInstance(instance, {
@@ -108,7 +117,7 @@ const { address, contractClassId, verifyInstanceArgs } = fromContractInstance(in
 
 // Verify
 const client = new AztecScanClient();
-await client.verifyArtifact(contractClassId, 1, tokenArtifact);
+await client.verifyArtifact(contractClassId, instance.version, tokenArtifact);
 await client.verifyInstance(address, { ...verifyInstanceArgs, artifactObj: tokenArtifact });
 ```
 

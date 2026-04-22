@@ -23,13 +23,13 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
 import dotenv from "dotenv";
+import { getInitialTestAccountsData } from "@aztec/accounts/testing";
 
 // Aztec v4 imports
 import { createAztecNodeClient } from "@aztec/aztec.js/node";
 import { EmbeddedWallet } from "@aztec/wallets/embedded";
 import { SponsoredFeePaymentMethod } from "@aztec/aztec.js/fee";
 import { getContractInstanceFromInstantiationParams } from "@aztec/aztec.js/contracts";
-import { AztecAddress } from "@aztec/aztec.js/addresses";
 import { Fr } from "@aztec/aztec.js/fields";
 import { SPONSORED_FPC_SALT } from "@aztec/constants";
 import {
@@ -81,6 +81,18 @@ async function main() {
   });
   log("Wallet created (prover enabled)");
 
+  const [fundedTestAccount] = await getInitialTestAccountsData();
+  if (!fundedTestAccount) {
+    throw new Error("No initial test account data available");
+  }
+
+  const feePayerAccount = await wallet.createSchnorrAccount(
+    fundedTestAccount.secret,
+    fundedTestAccount.salt,
+  );
+  const feePayerAddress = feePayerAccount.address;
+  log(`Using sandbox fee payer: ${feePayerAddress}`);
+
   // 2. Setup sponsored FPC for fee payment
   log("Setting up SponsoredFPC...");
   const sponsoredFPC = await getContractInstanceFromInstantiationParams(
@@ -103,7 +115,7 @@ async function main() {
 
   const deployAccountMethod = await schnorrAccount.getDeployMethod();
   await deployAccountMethod.send({
-    from: AztecAddress.ZERO,
+    from: feePayerAddress,
     fee: { paymentMethod: sponsoredPaymentMethod },
     wait: { timeout: DEPLOY_TIMEOUT, returnReceipt: true },
   });
@@ -115,7 +127,7 @@ async function main() {
   const tokenSymbol = "ASST";
   const tokenDecimals = 18;
 
-  const { contract: tokenContract, instance } = await TokenContract.deploy(
+  const { receipt: { contract: tokenContract, instance } } = await TokenContract.deploy(
     wallet,
     accountAddress,
     tokenName,
@@ -156,7 +168,7 @@ async function main() {
 
   const artifactResult = await client.verifyArtifact(
     contractClassId,
-    1, // version
+    instance.version,
     tokenArtifact,
   );
   log(

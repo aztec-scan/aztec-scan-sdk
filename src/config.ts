@@ -26,7 +26,7 @@ export const NETWORKS = {
     apiKey: "temporary-api-key",
   },
   mainnet: {
-    explorerApiUrl: "https://api.aztecscan.xyz",
+    explorerApiUrl: "https://api.mainnet.aztecscan.xyz",
     apiKey: "temporary-api-key",
   },
 } as const satisfies Record<string, AztecScanConfig>;

@@ -36,7 +36,7 @@ This is an **ESM project** (`"type": "module"` in package.json). All internal im
 
 ## Aztec Version
 
-All `@aztec/*` packages are pinned to **`4.0.0-devnet.2-patch.1`**. Do not use `^` for Aztec packages — they have breaking changes between pre-releases.
+All `@aztec/*` packages are pinned to **`4.2.0`**. Do not use `^` for Aztec packages — they have breaking changes between releases and pre-releases.
 
 ## Key Concepts
 
@@ -83,8 +83,8 @@ npm run deploy-and-verify::devnet
 
 The deploy-and-verify script uses:
 - `EmbeddedWallet` (ephemeral) with `proverEnabled: true` — required for devnet/testnet (fake proofs are rejected)
+- funded initial test account data as the deploy sender for account deployment
 - `SponsoredFPC` + `SponsoredFeePaymentMethod` for fee payment
-- `from: AztecAddress.ZERO` for account deployment (NOT the account's own address)
 - `TokenContract.deploy()` for contract deployment
 - 20-minute timeout for devnet block confirmation
 - 15-second wait for the AztecScan indexer after deployment
@@ -92,7 +92,7 @@ The deploy-and-verify script uses:
 **Important proving notes:**
 - `EmbeddedWallet` defaults to `proverEnabled: false`, which generates fake `ChonkProof.random()` proofs. Devnet/testnet nodes reject these with "Invalid tx: Invalid proof".
 - With `proverEnabled: true`, ClientIVC proof generation takes ~20s per tx via Barretenberg WASM.
-- Account deploy must use `from: AztecAddress.ZERO`, not the account being deployed (the account's entrypoint can't run before its constructor).
+- Account deploy must not use the account being deployed as `from`; use a funded sender address instead.
 
 ### AztecScanNotes
 
@@ -134,5 +134,9 @@ AztecScanNotes are optional metadata attached to contract instances, displayed i
 ## Reference
 
 - AztecScan API docs: https://docs.aztecscan.xyz
+- OpenAPI specs:
+- `https://api.devnet.aztecscan.xyz/v1/temporary-api-key/open-api-specification`
+- `https://api.testnet.aztecscan.xyz/v1/temporary-api-key/open-api-specification`
+- `https://api.mainnet.aztecscan.xyz/v1/temporary-api-key/open-api-specification`
 - Aztec v4 SDK: https://docs.aztec.network
 - Server-side verification logic lives in the [chicmoz](https://github.com/aztec-scan/chicmoz) repo under `services/explorer-api/` and `packages/contract-verification/`
