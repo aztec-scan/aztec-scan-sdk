@@ -5,6 +5,8 @@
  * See: chicmoz/services/explorer-api/src/svcs/http-server/routes/paths_and_validation.ts
  */
 
+import { NoirCompiledContract } from "@aztec/stdlib/noir";
+
 // ── Artifact verification ───────────────────────────────────────────
 
 /** Payload for POST /l2/contract-classes/:classId/versions/:version */
@@ -72,7 +74,7 @@ export interface VerifyInstanceArgs {
   deployer: string;
   salt: string;
   constructorArgs: string[];
-  artifactObj?: Record<string, unknown>;
+  artifactObj?: NoirCompiledContract;
 }
 
 // ── API response types ──────────────────────────────────────────────

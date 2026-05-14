@@ -20,6 +20,7 @@ import type {
   DeployerMetadata,
   VerifyInstanceArgs,
 } from "./types.js";
+import { NoirCompiledContract } from "@aztec/stdlib/noir";
 
 // ── Re-exports ──────────────────────────────────────────────────────
 
@@ -64,12 +65,14 @@ export class AztecScanClient {
   /**
    * Verify a contract artifact (contract class).
    *
+   * @notice `artifactObj` requires to be the unprocessed json object from `aztec compile` (target/) — NOT from aztec.js helpers like loadContractArtifact() 
+   * (converts bytecode base64 → buffer, this breaks verification).
    * @returns API response. Status 200 = already verified, 201 = newly verified.
    */
   async verifyArtifact(
     contractClassId: string,
     version: number,
-    artifactObj: Record<string, unknown>,
+    artifactObj: NoirCompiledContract,
   ): Promise<ApiResponse> {
     const url = generateVerifyArtifactUrl(this.config, contractClassId, version);
     const payload = generateVerifyArtifactPayload(artifactObj);

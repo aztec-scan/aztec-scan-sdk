@@ -7,6 +7,7 @@
 
 import type { ContractInstanceWithAddress } from "@aztec/aztec.js/contracts";
 import type { VerifyInstanceArgs } from "./types.js";
+import { NoirCompiledContract } from "@aztec/stdlib/noir";
 
 /**
  * Options for `fromContractInstance`.
@@ -15,7 +16,7 @@ export interface FromContractInstanceOptions {
   /** Constructor arguments as they were passed to the deploy call. Values are stringified automatically. */
   constructorArgs?: unknown[];
   /** Optional artifact object to include for combined artifact+instance verification. */
-  artifactObj?: Record<string, unknown>;
+  artifactObj?: NoirCompiledContract;
 }
 
 /**
@@ -38,6 +39,9 @@ export interface FromContractInstanceResult {
  * This extracts and stringifies `salt`, `deployer`, `publicKeysString`,
  * `constructorArgs`, and the contract `address` / `contractClassId`.
  *
+ * @notice `FromContractInstanceOptions` requires the artifactObj to be the unprocessed json object from `aztec compile` (target/) — NOT aztec.js helpers like loadContractArtifact() 
+ * (converts bytecode base64 → buffer, this breaks verification).
+ * 
  * @example
  * ```ts
  * const { contract, instance } = await TokenContract.deploy(wallet, admin, name, symbol, decimals)

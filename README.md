@@ -48,6 +48,9 @@ cp .env.example .env
 
 ```typescript
 import { AztecScanClient } from "aztec-scan-sdk";
+// Use the unprocessed json object from `aztec compile` (target/) — NOT aztec.js helpers like loadContractArtifact() 
+// (converts bytecode base64 → buffer, this breaks verification).
+import artifactJson from "pathToContractFolder/target/ContractName.json" with {type: "json"}
 
 // Uses env vars or defaults to devnet
 const client = new AztecScanClient();
@@ -63,7 +66,7 @@ const client = new AztecScanClient({
 const artifactResult = await client.verifyArtifact(
   contractClassId,
   1, // version
-  artifactJson,
+  artifactJson as NoirCompiledContract,
 );
 
 // Verify a contract instance deployment
@@ -74,7 +77,7 @@ const instanceResult = await client.verifyInstance(
     deployer,          // 66 chars: "0x" + 64 hex
     salt,              // 66 chars: "0x" + 64 hex
     constructorArgs: ["arg1", "arg2"],
-    artifactObj: artifactJson, // optional if already verified
+    artifactObj: artifactJson as NoirCompiledContract, // optional if already verified
   },
   {
     // optional deployer metadata
@@ -101,6 +104,9 @@ If you're using the Aztec SDK to deploy contracts, `fromContractInstance` elimin
 ```typescript
 import { AztecScanClient, fromContractInstance } from "aztec-scan-sdk";
 import { TokenContract } from "@aztec/noir-contracts.js/Token";
+// Use the unprocessed json object from `aztec compile` (target/) — NOT aztec.js helpers like loadContractArtifact() 
+// (converts bytecode base64 → buffer, this breaks verification).
+import tokenArtifact from "@aztec/noir-contracts.js/artifacts/token_contract-Token.json" with { type: "json" }
 
 // Deploy the contract
 const { receipt: { contract, instance } } = await TokenContract.deploy(
@@ -117,8 +123,8 @@ const { address, contractClassId, verifyInstanceArgs } = fromContractInstance(in
 
 // Verify
 const client = new AztecScanClient();
-await client.verifyArtifact(contractClassId, instance.version, tokenArtifact);
-await client.verifyInstance(address, { ...verifyInstanceArgs, artifactObj: tokenArtifact });
+await client.verifyArtifact(contractClassId, instance.version, tokenArtifact as NoirCompiledContract);
+await client.verifyInstance(address, { ...verifyInstanceArgs, artifactObj: tokenArtifact as NoirCompiledContract });
 ```
 
 The helper handles:

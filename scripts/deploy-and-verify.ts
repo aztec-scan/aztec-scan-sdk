@@ -40,6 +40,7 @@ import { TokenContract } from "@aztec/noir-contracts.js/Token";
 // SDK imports
 import { AztecScanClient, fromContractInstance } from "../src/index.js";
 import type { DeployerMetadata } from "../src/types.js";
+import { NoirCompiledContract } from "@aztec/stdlib/noir";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: join(__dirname, "../.env") });
@@ -197,7 +198,7 @@ async function main() {
     contractAddress,
     {
       ...verifyInstanceArgs,
-      artifactObj: tokenArtifact,
+      artifactObj: tokenArtifact as NoirCompiledContract,
     },
     deployerMetadata,
   );
