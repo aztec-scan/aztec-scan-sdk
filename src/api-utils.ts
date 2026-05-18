@@ -8,6 +8,7 @@
  * - No emojis in log output — plain, parseable text
  */
 
+import { NoirCompiledContract } from "@aztec/stdlib/noir";
 import type { AztecScanConfig } from "./config.js";
 import type {
   ApiResponse,
@@ -50,9 +51,12 @@ export function generateVerifyInstanceUrl(
  *
  * Handles both `{ default: artifact }` module-style and plain artifact objects,
  * matching the pattern in @chicmoz-pkg/contract-verification.
+ * 
+ * @notice `artifactObj` requires to be the unprocessed json object from `aztec compile` (target/) — NOT from aztec.js helpers like loadContractArtifact()  
+ * (converts bytecode base64 → buffer, this breaks verification).
  */
 export function generateVerifyArtifactPayload(
-  artifactObj: Record<string, unknown>,
+  artifactObj: NoirCompiledContract,
 ): VerifyArtifactPayload {
   const artifact =
     "default" in artifactObj && typeof artifactObj.default === "object"
